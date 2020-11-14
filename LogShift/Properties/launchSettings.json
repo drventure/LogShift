@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "LogShift": {
+      "commandName": "Project",
+      "commandLineArgs": "-f Test.txt"
+    }
+  }
+}
