@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -25,9 +26,12 @@ namespace LogShift
                     WriteLine("(c) 2020 drVenture");
                     WriteLine("Translate all datetime stamps in log file back to 0 based on first detected datetime stamp.");
                     WriteLine("");
-                    var buf = LoadLog(o.File);
-                    buf = ShiftLog(buf);
-                    SaveLog(o.File + ".Shifted", buf);
+
+                    var reader = OpenLog(o.File);
+                    var writer = new System.IO.StreamWriter(o.File + ".Shifted");
+                    ShiftLog(reader, writer);
+                    writer.Close();
+                    reader.Close();
 
                     WriteLine("Done");
                 });
@@ -50,65 +54,83 @@ namespace LogShift
         }
 
 
-        internal static string LoadLog(string filename)
+        internal static TextReader OpenLog(string filename)
         {
             WriteLine($"Loading {filename}...");
-            return System.IO.File.ReadAllText(filename);
+            return new StreamReader(System.IO.File.OpenRead(filename));
         }
 
 
-        internal static string ShiftLog(string buf)
+        internal static DateTime? BaseTimeStamp { get; set; }
+
+
+        internal static void ShiftLog(TextReader textReader, TextWriter textWriter)
         {
             var r = new StringBuilder();
 
-            var lines = buf.Split("\r\n");
-
-
-            DateTime? firstDt = null;
             var c = 0;
 
-            foreach (var l in lines)
+            do
             {
+                var b = textReader.ReadLine();
+                if (b == null) break;
+
                 c++;
-                var b = l;
-                TimeSpan span = TimeSpan.Zero;
 
-                var stamps = ParseLine(b);
-                if (firstDt == null && stamps.Count > 0)
-                {
-                    //snag the first timestamp on the line as the baseline
-                    firstDt = stamps[0].TimeStamp;
-                }
-
-                for (int i = stamps.Count - 1; i >= 0; i--)
-                {
-                    var stamp = stamps[i];
-
-                    span = stamp.TimeStamp.Subtract(firstDt.Value);
-                    if (span.CompareTo(TimeSpan.Zero) >= 0)
-                    {
-                        //must be positive, if it's negative, we'll assume this datetime is NOT actually a stamp but just data of some sort
-
-                        //put a space unless the stamp is at the front of the line
-                        b = b.Substring(0, stamp.Start) + (stamp.Start != 0 ? " " : "") + "(TIME)" +
-                            FormattedTimeSpan(span) +
-                            " " +
-                            b.Substring(stamp.Start + stamp.Length);
-                    }
-                }
+                b = ShiftLine(b);
 
                 Write($"Processing line: {c}");
                 ResetLeft();
 
-                r = r.AppendLine(b);
-            }
+                textWriter.WriteLine(b);
+            } while (true);
 
             WriteLine();
-
-            return r.ToString();
         }
 
 
+        /// <summary>
+        /// Parse timestamps from line and shift all stamps, rewriting the line
+        /// </summary>
+        /// <param name="buf"></param>
+        /// <returns></returns>
+        internal static string ShiftLine(string buf)
+        {
+            TimeSpan span = TimeSpan.Zero;
+
+            var stamps = ParseLine(buf);
+            if (BaseTimeStamp == null && stamps.Count > 0)
+            {
+                //snag the first timestamp on the line as the baseline
+                BaseTimeStamp = stamps[0].TimeStamp;
+            }
+
+            for (int i = stamps.Count - 1; i >= 0; i--)
+            {
+                var stamp = stamps[i];
+
+                span = stamp.TimeStamp.Subtract(BaseTimeStamp.Value);
+                if (span.CompareTo(TimeSpan.Zero) >= 0)
+                {
+                    //must be positive, if it's negative, we'll assume this datetime is NOT actually a stamp but just data of some sort
+
+                    //put a space unless the stamp is at the front of the line
+                    buf = buf.Substring(0, stamp.Start) + (stamp.Start != 0 ? " " : "") + "(TIME)" +
+                        FormattedTimeSpan(span) +
+                        " " +
+                        buf.Substring(stamp.Start + stamp.Length);
+                }
+            }
+
+            return buf;
+        }
+
+
+        /// <summary>
+        /// Parse all timestamps from a line
+        /// </summary>
+        /// <param name="buf"></param>
+        /// <returns></returns>
         internal static List<Stamp> ParseLine(string buf)
         {
             var r = new List<Stamp>();
@@ -142,13 +164,6 @@ namespace LogShift
                 return span.ToString(longfmt);
 
             return span.ToString(shortfmt);
-        }
-
-
-        internal static void SaveLog(string filename, string buf)
-        {
-            WriteLine("Saving...");
-            System.IO.File.WriteAllText(filename, buf);
         }
     }
 
