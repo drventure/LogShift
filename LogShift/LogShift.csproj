@@ -5,8 +5,9 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Authors>drVenture</Authors>
     <Description>Utility to parse date time stamps in log files and offset them based on the first encountered timestamp. Used to equalize logs captured at two different times for comparisons.</Description>
-    <Copyright>(c) 2020 drVenture and Associates</Copyright>
-    <Company>drVenture and Associates</Company>
+    <Copyright>(c) 2020 drVenture</Copyright>
+    <Company>drVenture</Company>
+    <StartupObject>LogShift.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

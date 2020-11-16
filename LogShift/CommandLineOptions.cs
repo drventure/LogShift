@@ -13,7 +13,6 @@ namespace LogShift
         public IEnumerable<string> Files { get; set; }
 
 
-        private string _file = null;
         [Option('f', "file",
             HelpText = "Log Filename to process. Can also omit the -f and just put the filename as the only argument.",
             Default = null
@@ -26,6 +25,13 @@ namespace LogShift
             Default = "(DURATION)"
         )]
         public string DurationTag { get; set; }
+
+
+        [Option('s', "outputsuffix",
+            HelpText = "The Suffix to append to file name when writing the output file",
+            Default = "shifted"
+        )]
+        public string OutputSuffix { get; set; }
 
 
         [Option('m', "monthfirst",

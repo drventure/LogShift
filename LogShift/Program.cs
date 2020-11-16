@@ -55,7 +55,7 @@ namespace LogShift
                         if (System.IO.File.Exists(f))
                         {
                             var reader = OpenLog(f);
-                            var writer = new System.IO.StreamWriter(f + ".Shifted");
+                            var writer = new System.IO.StreamWriter(f + "." + o.OutputSuffix);
                             ShiftLog(reader, writer);
                             writer.Close();
                             reader.Close();
