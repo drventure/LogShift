@@ -27,13 +27,17 @@ namespace LogShift
 
             parseResult.WithParsed<Options>(o =>
                 {
-                    if (o.File == null)
+                    if (o.File == null && o.Files.Count() == 0)
                     {
                         //render missing file argument error
                         Console.Error.Write(GetHelp<Options>(parseResult));
-                        Console.Error.WriteLine("\r\nMust specify either a single filename as argument or provide the -f argument.");
+                        Console.Error.WriteLine("\r\nMust specify either one or more filenames as arguments or provide the -f argument.");
                         return;
                     }
+
+                    //construct single list to process
+                    var files = o.Files.ToList();
+                    if (o.File != null) files.Add(o.File);
 
                     Program.DurationTag = o.DurationTag;
                     Program.MonthFirst = o.MonthFirst;
@@ -46,11 +50,17 @@ namespace LogShift
                     WriteLine("");
 
 
-                    var reader = OpenLog(o.File);
-                    var writer = new System.IO.StreamWriter(o.File + ".Shifted");
-                    ShiftLog(reader, writer);
-                    writer.Close();
-                    reader.Close();
+                    foreach (var f in files)
+                    {
+                        if (System.IO.File.Exists(f))
+                        {
+                            var reader = OpenLog(f);
+                            var writer = new System.IO.StreamWriter(f + ".Shifted");
+                            ShiftLog(reader, writer);
+                            writer.Close();
+                            reader.Close();
+                        }
+                    }
 
                     WriteLine("Done");
                 });

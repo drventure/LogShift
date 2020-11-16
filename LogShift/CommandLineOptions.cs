@@ -8,28 +8,17 @@ namespace LogShift
     public class Options
     {
         [Value(0, 
-            HelpText = "The Filename to process. Specify either a single filename or use the -f option."
+            HelpText = "The Filename(s) to process. Specify either one or more filenames or use the -f option."
         )]
-        public string FileArg { get; set; }
+        public IEnumerable<string> Files { get; set; }
 
 
         private string _file = null;
-        [Option('f', "file", 
-            HelpText = "Log Filename to process. Can also omit the -f and just put the filename as the only argument.", 
+        [Option('f', "file",
+            HelpText = "Log Filename to process. Can also omit the -f and just put the filename as the only argument.",
             Default = null
         )]
-        public string File 
-        { 
-            get
-            {
-                if (_file == null) return this.FileArg;
-                return _file;
-            }
-            set
-            {
-                _file = value;
-            }
-        }
+        public string File { get; set; }
 
 
         [Option('d', "durationtag",
