@@ -2,7 +2,7 @@
   "profiles": {
     "LogShift": {
       "commandName": "Project",
-      "commandLineArgs": "-f Test.txt"
+      "commandLineArgs": "Test.txt"
     }
   }
 }
